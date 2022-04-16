@@ -7,11 +7,16 @@ import { BarWave } from 'react-cssfx-loading/lib';
 const AvailableMeals = () => {
     const [meals, setMeals] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [httpError, setHttpError] = useState();
 
     useEffect(() => {
         const fetchMeals = async () => {
 
             const response = await fetch("https://react-http-d404d-default-rtdb.asia-southeast1.firebasedatabase.app/meals.json");
+
+            if (!response.ok) {
+                throw new Error("Something went wrong");
+            }
             // console.log(response);{many data in this object}
             const responseData = await response.json();
             // console.log(responseData);{convert to json}
@@ -27,7 +32,14 @@ const AvailableMeals = () => {
             setMeals(loadedMeals);
             setIsLoading(false);
         };
-        fetchMeals();
+
+        fetchMeals().catch(
+            (error) => {
+                setIsLoading(false);
+                setHttpError(error.message);
+            });
+
+
     }, []);
     if (isLoading) {
         return <div className={classes.center}>
@@ -35,6 +47,13 @@ const AvailableMeals = () => {
                 <BarWave color="#8a2b06" />
             </section>
         </div>
+    }
+    if (httpError) {
+        return (
+            <section className={classes.MealsError}>
+                <p>{httpError}</p>
+            </section>
+        );
     }
     const mealsList = meals.map((meal) => <MealItem id={meal.id} key={meal.id} name={meal.name} description={meal.description} price={meal.price} />);
     return (
